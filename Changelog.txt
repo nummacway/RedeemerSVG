@@ -1,0 +1,119 @@
+v0.1-alpha (23 Aug 2017)
+- Erste Veröffentlichung
+
+v0.2-alpha (26 Aug 2017)
+- Ein Fehler wurde behoben, durch den die wissenschaftliche e-Schreibweise nur bei Komma-, aber nicht bei Ganzzahlen funktionierte.
+- Bei größeren Dateien ist die Klasse jetzt etwa 50 bis mehrere hundert Mal schneller (StrUtils.MidStr und StrUtils.LeftStr der Hurensohn).
+- Eine mögliche Endlosschleife wurde behoben, falls nach einem Kommentar nicht sofort ein Tag kam.
+- Es wird in allen vorhandenen Klassen jetzt Generics.Collections.TDictionary verwendet.
+(Die Demo zeigt die Ladezeit jetzt in der Titelleiste an.)
+- Es können nun auch Gruppen mit use referenziert werden.
+  Anmerkung: Man kann in SVG eigentlich alles referenzieren, allerdings kommt die Engine mit inhaltslosen Tags nicht klar.
+- Es wurde eine Liste hinzugefügt, die die use-Referenzen speichert, die derzeit verarbeitet werden, sodass Rekursion verhindert wird (ein use-Tag kann sich nicht mehr selbst aufrufen).
+- Das Memory-Management beim Erstellen wurde geändert, Create erstellt jetzt bereits ein 1x1 großes leeres Bild.
+
+v0.2b-alpha (01 Sep 2017)
+- Ungenutzte Variable entfernt
+- Ungültiges UTF-8 führt nicht mehr zu einem Abbruch
+- Create() nach public verschoben und reintroduce-Flag gesetzt
+
+v0.3-alpha (10 Sep 2017)
+- Umstellung aller relevanten internen Methoden beim Lesen von Kommazahlen von Integer auf Int64 (außer der Exponent)
+- Wissenschaftliche e-Schreibweise jetzt auch für negative Exponenten
+- Wissenschaftliche e-Schreibweise wird nun auch beim path-Element unterstützt
+- Kleinere Performance-Verbesserungen
+- Falsche Positionierung von nicht links ausgerichtetem Text korrigiert
+- Attributwerte können (wieder?) in einfachen Anführungszeichen stehen
+- Unterstützung für selbstschließende Tags
+- Referenzierung von anderen Elementen als Gruppen und Symbole mit use hinzugefügt
+  Anmerkung: Funktionierte bis 0.4-alpha nicht.
+- constructor-Methoden der Hilfsklassen nach public verschoben
+- stroke/fill-opacity<0,2 als transparent interpretiert
+- Bug mit nicht klein komplett geschriebenen Attributen behoben
+- Ignorieren der Groß- und Kleinschreibung von Tags verbessert
+- Unterstützung für Stil-Eigenschaft Gehrungsgrenze (stroke-miterlimit) hinzugefügt
+- Speicherlecks geschlossen
+- Berechnete gesamte opacity<0,2 als transparent interpretiert
+- Workaround für Initialisierung mittels TGraphicClass.Create hinzugefügt
+
+v0.4-alpha (14 Oct 2017)
+- Der Code aus der Create-Methode, der ein neues Bild erstellt, ist jetzt eine eigene Methode in einer eigenen Klasse, da ich ihn auch anderswo benötige. Die Methode wird nun erst beim Laden aus einem Stream aufgerufen.
+- Die Arrays für die Strichelungen und Bezierkurven sind jetzt packed.
+- Weitere Parameter sind jetzt const.
+- Speicherleck-Korrekturen
+- Kleinere Optimierung am System, das XML-Entities auflöst
+- Unterstützung für mehrfaches Vorkommen derselben CSS-Eigenschaften in einem style-Attribut (gab zuvor eine Exception)
+- Unterstützung für !important (es wird eine Liste angelegt, welche Dinge !important sind)
+  Anmerkung: Anders als bei Firefox führen ungültige style-Werte bei TRedeemerSVG nicht dazu, dass ein vorhandenes gleichnamiges Attribut interpretiert wird, das von einer (gültigen) style-Eigenschaft versteckt würde (war vorher auch schon so).
+  Anmerkung: Die relativ komplexe Implementation ist dadurch zu begründen, wie relative Werte zu behandeln sind.
+- Das mehrfache Vorkommen desselben SVG/XML-Attributs führt jetzt nicht mehr zu einem Fehler (gab zuvor eine Exception)
+  Anmerkung: Intern wird jedoch weiterhin eine Exception ausgelöst, die TRedeemerSVG per try-except-Block abfängt, da mehrere gleiche Attribute kein gültiges SVG/XML sind).
+- Als Vorbereitung für eine eventuelle Unterstützung des image-Tags wurde RedeemerAffineGeometry Unterstützung für affine Umkehrfunktionen hinzugefügt
+- Unterstützung für das svg-Attribut preserveAspectRatio (nur Wurzel-svg)
+- TContext.LastViewport in TContext.LastViewBox umbenannt, da es sich hierbei eben um die Viewbox handelt (der Viewport wird in den Transformationen verwurschtelt)
+- Vollständige Unterstützung für x, y, width und height bei use
+- NOCH NICHT VOLLSTÄNDIG GETESTET: Vollständige Unterstützung für viewBox und preserveAspectRatio bei symbol
+- Referenzierung von anderen Elementen als Gruppen und Symbole mit use hinzugefügt
+  Anmerkung: Stand vorher schon im Changelog, hat aber nicht funktioniert
+- Dimensions aus TContext entfernt (wurden nirgendwo gebraucht)
+- CentripetalCatmullRomTo führt nicht mehr zu einem Fehler sondern zu einer Geraden (wie ArcTo).
+- Häufig auftretender Code aus der path-Behandlung wurde in Methoden ausgelagert
+- RedeemerXML: Korrekturen bei der Erkennung von selbstschließenden Tags
+- RedeemerXML: Länge wird jetzt nur einmal festgestellt und nicht bei jedem Parsen der Attribute
+- RedeemerXML: Diverse Variablen nach private geschoben
+- Fehler bei der Referenzierung von anderen Elementen als Gruppen und Symbole mit use korrigiert (rief stattdessen das auf das referenzierte Objekt folgende Objekt auf)
+- Schwerer Berechnungsfehler bei der Erstellung der initialen internen Viewport-Transformationen korrigiert
+  Anmerkung: Innere (Viewport-spezifisch) und äußere (Supersampling, Umwandlung der Koordinatensysteme) affine Abbildung waren vertauscht (die hier in Klammern angegebene Version ist korrekt). Dadurch wurde das Objekt nicht richtig zentriert
+- Noch ein Berechnugsfehler bei der Erstellung der initialen äußeren Abbildung (siehe vorherige Anmerkung) wurde behoben
+  Anmerkung: Dies führte zu einer kleinen Verschiebung, die dazu führte, dass Grafiken, deren Linien exakt auf Pixelgrenzen verliefen, unscharf wurden.
+- Unterstützung von nur durch einen einzigen Parameter (rx oder ry) abgerundeten Rechtecken hinzugefügt
+- Vollständige Unterstützung auch für svg-Elemente, die nicht das Wurzel-Element sind, hinzugefügt
+- Verarbeitung der einzelnen Tags komplett geändert
+  Anmerkung: Die Schleife, die die Elemente eines gruppierenden Elements (svg, g, symbol) interpretiert, ist jetzt in einer anderen Methode als die Verzweigungen, die die zum Element passende Methode aussuchen
+- Interpretation von !important erneut geändert, sodass es nur die Attribute überschreibt, die im gleichen Atemzug gesetzt werden.
+- Skalierungsfehler mit der Skalierung von symbol-Viewboxen mittels use behoben (falls Breite und/oder Höhe nicht angegeben, wird 100% angenommen)
+- use kann jetzt auch Objekte referenzieren, die sich in der Datei erst hinter dem use-Element selbst befinden.
+  Anmerkung: Das verlangsamt das Programm leider um ganz grob etwa 7,5%, allerdings stark abhängig vom Inhalt.
+  Anmerkung: Durch diese und weitere Änderungen kann das offizielle SVG-Logo fast richtig geladen werden. Lediglich Unterstützung für ArcTo fehlt.
+
+v0.5-beta (16 Oct 2017)
+- In RedeemerAffineGeometry diverse Funktionen korrigiert und hinzugefügt (unter anderem ein schwerer Fehler bei der Verwendung von affinen Abbildungen auf einen reellen Vektor)
+- ArcTo hinzugefügt (endlich!)
+- Fehler behoben, durch den erstellte PNG-Dateien kein IHDR-Chunk hatten (und deshalb nicht geladen werden konnten)
+  Anmerkung: Umgesetzt durch diverse Typumwandlungen mit Zeigern. RTTI der Hurensohn.
+- Fehler aus v0.4 bezüglich des Ladens von Viewports ohne Viewboxen behoben
+- Fehler aus v0.4 behoben, durch den Präsentationsattribute nicht aus dem Wurzel-svg-Element geladen wurden
+
+v0.5-beta2 (15 Apr 2018, nicht veröffentlicht)
+- Kann jetzt direkt aus einem String laden statt nur aus einem Stream
+- <path>-Befehl Z schließt nun den Pfad korrekt und M öffnet diesen richtig
+- Prozentangaben beziehen sich nun auf die richtige viewBox
+- Speicher-Bugfixes im Fehlerfall
+- letzte Version von JN-GAMES
+
+0.6-beta
+- Entwicklung durch Fensterbörse Verden GmbH.
+- Unterstützung für vector-effect="non-scaling-stroke" (auch vererbbar, dann aber explizit mit vector-effect="inherit")
+- Transparenz für weiße oder schwarze Konturen (nur testweise!) wird unterstützt.
+- Der Callback kann nun durch einen Stack verwaltet werden. Die neuen Funktionen dafür sind Klassenfunktionen von TSVGImage.
+- Bézier-Shorthand-Befehle für <path> (T, S) funktionen jetzt auch, ohne dass unmittelbar zuvor eine Bézier-Kurve verwendet wurde.
+- Text kann jetzt unter- oder durchgestrichen dargestellt werden.
+- Der Alphakanal kann deaktiviert und durch eine beliebige Farbe ersetzt werden, damit das Rendering etwa doppelt so schnell läuft.
+- Ein Fehler bei der Verwendung von Klammern in CSS-Eigenschaften behoben, da sie anders als Apostroph und Anführungszeichen nicht als Quantifizierer (Begrenzer) angesehen wurden.
+  Anmerkung: Prinzipiell könnte es hier einen Bug geben: fill:url('Bild(Test).png')
+- Antialias ist jetzt deaktivierbar (nur für eine einzelne Instanz).
+  Anmerkung: Dies ist derzeit nur möglich bei deaktiviertem Alphakanal.
+- Der Alphakanal kann jetzt nur noch für einzelne Instanzen deaktiviert werden.
+- Callback kann jetzt optional nach Erstellen einer Instanz gesetzt werden.
+- Die Eigenschaft text-anchor wird jetzt vererbt.
+- Bilder werden jetzt unterstützt. Möglich sind SVG, PNG, JPEG und GIF. Die unterstützten Formate können in der Datei RedeemerDataURI.pas (TODO: .inc) geändert werden.
+  Anmerkung: Bei diesem Tag wird als Transformationen keine Drehung (außer um 180°) und keine Scherung unterstützt! Es gibt ansonsten zwar keine Fehlermeldung, aber es passieren komische Dinge.
+- Muster werden unterstützt.
+  Anmerkung: Es werden nur deckende Muster unterstützt.
+  Anmerkung: RedeemerSVG unterstützt ausschließlich patternUnits="userSpaceOnUse". patternUnits="objectBoundingBox" wird nicht unterstützt, ebenso nicht die Verschiebung durch die Parameter x und y.
+- preserveAspectRatio für Bilder hinzugefügt.
+- Bei HandleUse und HandleGroup2 wurde die Translation (Verschiebung) vor die Berechnung der Viewport-Transformation gezogen, weil mathematisch mehr Sinn ergibt und zumindest bei Bildern dahinter auch gar nicht funktionierte.
+
+
+Geplant für später:
+- Clipping durch viewBox - vielleicht (einiges sieht echt komisch aus in Firefox)
