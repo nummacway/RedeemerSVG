@@ -8,10 +8,10 @@ Entstanden 2017 mit einigen Patches und Ergänzungen bis 2021
 ## Features
 
 - Übersetzt SVG nach GDI
-  - Falls eine Eigenschaft von `TCanvas` alle damit verbundenen GDI-Features kapselt, wird stattdessen diese genutzt. Zum Zeitpunkt der Entwicklung war insbesondere `TPen` zu unvollständig um benutzbar zu sein.
+  - Falls eine Eigenschaft von `TCanvas` alle damit verbundenen GDI-Features kapselt, wird stattdessen diese genutzt. Zum Zeitpunkt der Entwicklung war insbesondere `Pen` zu unvollständig um benutzbar zu sein.
 - `TSVGInterpreter` unterstützt die Ausgabe auf beliebigen Gerätekontexten
-- Mitgelieferte Ausgabemöglichkeiten:
-  - als `TPNGImage`-Erbe (`TSVGImage`)
+- Mitgelieferte Ausgabemöglichkeiten (bereit zur Verwendung):
+  - als `TPngImage`-Erbe (`TSVGImage`)
   - als `TMetafile`-Erbe (`TSVGMetafile`)
   - auf `TPrinter` über Unterstützerklasse
 - Ausgabe ohne unnötige Verluste – eine Vektorgrafik zu drucken, ergibt beispielsweise eine Vektorgrafik
@@ -28,7 +28,7 @@ Entstanden 2017 mit einigen Patches und Ergänzungen bis 2021
 
 - Delphi 2009 oder neuer (wegen Generics, UTF-16 und Unterstützerklassen), getestet mit 12.0
 
-Irgendwann wurde von Emba die Methodensignatur von `GetPath` geändert. Es erwartet nun Zeiger als zweites und drittes Argument. Die genaue Version ist mir nicht bekannt, aber laut einem [Thread auf Stack Overflow](https://stackoverflow.com/questions/32333148/delphi-10-seattle-changes-to-win32-getpath-and-redundant-tpoint-and-pointl-reco) DCC 30.0. Entsprechend ist die bedingte Kompilierung ausgeführt.
+Irgendwann wurde von Emba die Methodensignatur von `Windows.GetPath` geändert. Es erwartet nun typisierte Zeiger als zweites und drittes Argument statt typenlose `var`s. Die genaue Version ist mir nicht bekannt, aber laut einem [Thread auf Stack Overflow](https://stackoverflow.com/questions/32333148/delphi-10-seattle-changes-to-win32-getpath-and-redundant-tpoint-and-pointl-reco) DCC 30.0. Entsprechend ist die bedingte Kompilierung ausgeführt.
 
 
 ## Verwendungsbeispiele
@@ -48,7 +48,7 @@ end;
 
 ### TSVGMetafile
 
-Durch die Ausgabe als Metafile können SVGs auch dann als Vektorgrafik ausgegeben werden, wenn andere Komponenten das nicht können, aber EMF oder WMF unterstützten. `TSVGMetafile` unterstützt zudem optional einen Workaround (genannt `WordFix`) für einen Bug in Microsoft Office, das Metafiles fälschlicherweise mit dem Vektorgrafik-Koordinatensystem lädt. Metafiles erfordern aber _zwingend_ ein Rastergrafik-Koordinatensystem (unter anderem, weil ihr Koordinatensystem ganzzahlig ist). Würde eine Metafile ohne den Workaround in Word geladen, würde es oben und links jeweils abgeschnitten. Der Bug existiert auch in einigen anderen Programmen. Die Eigenschaft Enhanced kann ebenfalls genutzt werden. Beispielsweise konnten alte Versionen von List&Label EMFs nicht mit dem richtigen Seitenverhältnis laden, WMFs aber schon. Bézierkurven werden zwar von GDI automatisch in Segmente unterteilt, es fehlen jedoch einige Stift-Features ersatzlos.
+Durch die Ausgabe als Metafile können SVGs auch dann als Vektorgrafik ausgegeben werden, wenn andere Software das nur bei EMF oder WMF unterstützt, beispielsweise Microsoft Office oder combit List&Label. `TSVGMetafile` unterstützt zudem optional einen Workaround (genannt `WordFix`) für einen Bug in Microsoft Office, das Metafiles fälschlicherweise mit dem Vektorgrafik-Koordinatensystem lädt. Metafiles erfordern aber _zwingend_ ein Rastergrafik-Koordinatensystem (unter anderem, weil ihr Koordinatensystem ganzzahlig ist). Würde eine Metafile ohne den Workaround in Word geladen, würde es oben und links jeweils abgeschnitten. Der Bug existiert auch in einigen anderen Programmen. Die Eigenschaft `Enhanced` kann ebenfalls genutzt werden, um die Ausgabe zu konfigurieren. Beispielsweise konnten alte Versionen von List&Label EMFs nicht mit dem richtigen Seitenverhältnis laden, WMFs aber schon. Die von WMF nicht unterstützten Bézierkurven werden zwar von GDI automatisch in Segmente unterteilt, es fehlen praktisch alle Stift-Features in WMF ersatzlos.
 
 ```pascal
 SVG := TSVGMetafile.Create();
@@ -65,7 +65,7 @@ finally
 end;
 ```
 
-Es ist eine Überlegung wert, im Callback ein großzügiges Supersampling anzufordern, zumal es hier keinen Speicher kostet.
+Es ist eine Überlegung wert, ein Callback anzulegen und darin ein großzügiges Supersampling (durch proportionale Vergrö0erung von `Dimensions`) anzufordern, zumal das Supersampling hier nicht direkt Speicher kostet.
 
 
 ### TPrinter
@@ -74,7 +74,7 @@ Man kann beliebig viele SVGs auf eine Seite malen, aber sie nehmen jeweils die g
 
 Es kann derzeit keine Dateien laden sondern nur Strings und Streams.
 
-```
+```pascal
 if PrintDialog.Execute() then
 begin
   SL := TStringList.Create();
@@ -98,14 +98,95 @@ end;
 
 `TSVGInterpreter` unterstützt diejenigen Features aus SVGTiny 2.0, die einigermaßen direkt in GDI existieren.
 
-SVGTiny ist ein wilder Mischmasch aus anderen SVG-Versionen und teils darüber hinaus, aber ohne Stylesheet-Unterstützung. `style`-Attribute funktionen. Illustrator-Exporte funktionieren nicht. Affinity (zumindest Affinity 1) funktioniert. Weil ich Affinity benutze, ist RedeemerSVG auf maximale Kompatibilität mit diesem ausgelegt.
+SVGTiny ist ein wilder Mischmasch aus anderen SVG-Versionen und teils darüber hinaus, aber ohne Stylesheet-Unterstützung. `style`-Attribute funktionen. Illustrator-Exporte funktionieren daher nicht, zumindest nicht standardmäßig. Affinity (zumindest Affinity 1) funktioniert. Weil ich Affinity benutze, ist RedeemerSVG auf maximale Kompatibilität mit diesem ausgelegt.
 
-GDI unterstützt beispielsweise keine Verläufe (von denen diese Klasse nur die erste definitierte Farbe rendert), richtige Transparenz, Filter und exotische Text-Eigenschaften.
+RedeemerSVG erfordert bei `<use>`, dass das `href`-Attribut aus dem `xlink`-Namespace ist, der aber seit kurzem nicht mehr zwingend vorgeschrieben ist, weil er auch einfach sehr nervig war. Ein entsprechender Patch wäre nicht schwer zu erstellen.
 
-Bei Pfaden fehlen Catmull-Rom und Bearing, allerdings hatten neben mir auch alle Browser-Hersteller keine Lust auf die zwei, weshalb das W3C sie aus SVG 2.0 wieder entfernt hat. Gleiches gilt für die nicht von mir unterstützten Werte von `vector-effect`, die ebenfalls zur Entfernung vorgesehen sind.
+GDI unterstützt u.a. nicht die von SVG unterstützten Features Farbverläufe (von denen diese Klasse nur die erste definitierte Farbe rendert), richtige Transparenz, Filter und exotische Text-Eigenschaften. Bei Pfaden fehlen Catmull-Rom und Bearing, allerdings hatten neben mir auch alle Browser-Hersteller keine Lust auf die zwei, weshalb das W3C sie aus SVG 2.0 wieder entfernt hat. Gleiches gilt für die nicht von mir unterstützten Werte von `vector-effect`, die ebenfalls zur Entfernung vorgesehen sind.
 
-| Eigenschaft | `style` | Wert | SVG | Unterstützt | Anmerkungen |
-| ----------- | ------- | ---- | ------- | ------------- | ----------- |
+
+### Elemente und Attribute
+
+| Element | Attribut | SVG | Unterstützung |
+| ------- | -------- | --- | ------------- |
+| `rect` | `x` |  | voll |
+|  | `y` |  | voll |
+|  | `width` |  | voll |
+|  | `height` |  | voll |
+| `circle` | `cx` |  | voll |
+|  | `cy` |  | voll |
+|  | `r` |  | voll |
+| `ellipse` | `cx` |  | voll |
+|  | `cy` |  | voll |
+|  | `rx` |  | voll |
+|  | `ry` |  | voll |
+| `line` | `x1` |  | voll |
+|  | `y1` |  | voll |
+|  | `x1` |  | voll |
+|  | `y2` |  | voll |
+| `polyline` | `points` |  | voll |
+| `polygon` | `points` |  | voll |
+| `path` | `d` |  | außer R, B |
+|  | `pathLength` |  | keine |
+| `text` | `x` |  | voll |
+|  | `y` |  | $y_i \mid i \leq \|x\|$ |
+|  | `dx` |  | keine |
+|  | `dy` |  | keine |
+|  | `lengthAdjust` |  | keine |
+|  | `rotate` |  | keine |
+|  | `textLength` |  | keine |
+|  | `inline-size` | ab 2.0 | keine |
+|  | `writing-mode` |  | keine |
+|  | `glyph-orientation-horizontal` |  | keine |
+|  | `direction` |  | keine |
+|  | `unicode-bidi` |  | keine |
+|  | `baseline-shift` |  | keine |
+|  | `font-stretch` |  | keine |
+|  | `text-anchor` |  | voll |
+|  | `word-spacing` |  | keine |
+|  | `letter-spacing` |  | keine |
+|  | `kerning` | 1.1 bis 1.1 | keine |
+| `image` | `xlink:href` |  | voll |
+|  | `x` |  | voll |
+|  | `y` |  | voll |
+|  | `width` |  | voll |
+|  | `height` |  | voll |
+|  | `preserveAspectRatio` |  | voll |
+| `svg` | `x` |  | voll |
+|  | `y` |  | voll |
+|  | `width` |  | voll |
+|  | `height` |  | voll |
+|  | `viewBox` |  | voll |
+|  | `preserveAspectRatio` |  | voll |
+| `symbol` | `id` |  | voll |
+|  | `viewBox` |  | voll |
+|  | `preserveAspectRatio` |  | voll |
+| `solidcolor` | `id` | ab 2.0 | voll |
+|  | `solid-color` |  | ohne Alpha |
+|  | `solid-opacity` |  | keine |
+| `linearGradient` | `id` |  | nur 1. Stop |
+| `radialGradient` | `id` |  | nur 1. Stop |
+| `stop` | `stop-offset` |  | keine |
+|  | `stop-color` |  | ohne Alpha |
+|  | `stop-opacity` |  | keine |
+| `use` | `xlink:href` |  | voll |
+|  | `x` |  | voll |
+|  | `y` |  | voll |
+|  | `width` |  | voll |
+|  | `height` |  | voll |
+| `g` | _(keine definiert)_ |  | voll |
+| `tspan` | _(alle)_ |  | keine |
+| `textPath` | _(alle)_ |  | keine |
+| `font` | _(alle)_ |  | keine |
+| `font-face` | _(alle)_ |  | keine |
+| `glyph` | _(alle)_ |  | keine |
+| `view` | _(alle)_ |  | keine |
+
+
+### Präsentationsattribute und Stile
+
+| Eigenschaft | `style` | Wert | SVG | Unterstützung | Anmerkungen |
+| ----------- | ------- | ---- | --- | ------------- | ----------- |
 | `fill` | ja | Hex-Farbcode |  | ohne Alpha | Standard: schwarz |
 |  |  | `rgb()` |  | voll |  |
 |  |  | `rgba()` |  | ohne Alpha |  |
@@ -187,8 +268,8 @@ Bei Pfaden fehlen Catmull-Rom und Bearing, allerdings hatten neben mir auch alle
 
 ## Hinweise
 
-- Infos zur grundlegenden Funktionsweise finden sich im [Thread auf Delphi-PRAXiS](https://www.delphipraxis.net/193635-redeemersvg-tsvgimage-kleine-svg-unit-fuer-delphi-mit-gdi.html) (die Dokumentation hier auf Github ist im Zweifel aktueller als die dortige)
-- Es gibt einen GDI+-basierten Interpreter für Delphi. Dieser unterstützt naturgemäß wesentlich mehr SVG-Features als RedeemerSVG, allerdings fehlt ihm die Vielseitigkeit durch die verlustfreie Ausgabe auf unterschiedlichsten Gerätekontexten.
+- Infos zur grundlegenden Funktionsweise finden sich im [Thread auf Delphi-PRAXiS](https://www.delphipraxis.net/193635-redeemersvg-tsvgimage-kleine-svg-unit-fuer-delphi-mit-gdi.html). Die Dokumentation hier auf Github ist im Zweifel aktueller als die dortige.
+- Es gibt auch irgendwo einen GDI+-basierten Interpreter für Delphi. Dieser unterstützt naturgemäß wesentlich mehr SVG-Features als RedeemerSVG, allerdings fehlt ihm die Vielseitigkeit durch die verlustfreie Ausgabe auf unterschiedlichsten Gerätekontexten.
 - Die gzip-Unterstützung ist etwas friemelig, weil Z-Streams in Delphi 2009 und 2010 (und XE?) keine negativen Fenster unterstützen und sich daher normalerweise nur für zlib-Dateien nutzen lassen. Um diese völlig grund- und sinnlose Einschränkung zu umgehen und beliebige Deflate-Streams zu unterstützen, muss man den – völlig sinnlosen – zlib-Header hinzufügen oder entfernen.
-- Unterstützt RDP. Auf Metafile-Gerätekontexte kann normalerweise *nur* fehlerfrei gezeichnet werden, wenn die Remotedesktop-Bildschirmauflösung 320x240 beträgt. Bei anderen 4:3-Auflösungen heben sich die Auswirkungen Bug immerhin gegenseitig wieder auf. Wird jedoch beispielsweise ein 16:9-Bildschirm für RDP verwendet, sind durch Metafile-Gerätekontexte gezeichnete horizontale Linien sehr viel dicker als vertikale, da GDI an einigen Stellen mit der tatsächlichen Auflösung, aber an anderen Stellen mit 320x240 rechnet. Der aus Windows 7 bekannte Bug existiert unter Windows 10 nicht mehr, dafür existiert ein neuer, ähnlicher Bug. RedeemerSVG umgeht beide Bugs, wenn nötig. Der Bugfix ist so gebaut, dass seine grundlose Anwendung nicht zu Problemen führt, sollte RDP jemals andere Auflösungen als 320x240 vollständig unterstützen.
+- RedeemerSVG unterstützt RDP. Auf Metafile-Gerätekontexte kann während einer RDP-Sitzung normalerweise *nur* fehlerfrei gezeichnet werden, wenn die Remotedesktop-Bildschirmauflösung 320x240 beträgt. Bei anderen 4:3-Auflösungen heben sich die Auswirkungen des Bug immerhin gegenseitig wieder auf. Wird jedoch beispielsweise ein 16:9-Bildschirm für RDP verwendet, sind durch Metafile-Gerätekontexte gezeichnete horizontale Linien sehr viel dicker als vertikale, da GDI an einigen Stellen mit der tatsächlichen Auflösung, aber an anderen Stellen mit 320x240 rechnet. Der aus Windows 7 bekannte Bug existiert unter Windows 10 nicht mehr, dafür existiert ein neuer, ähnlicher Bug. RedeemerSVG umgeht beide Bugs, wenn nötig. Der Bugfix ist so gebaut, dass seine grundlose Anwendung nicht zu Problemen führt, sollte RDP jemals andere Auflösungen als 320x240 vollständig unterstützen.
 - Von Salat schrumpft der Bizeps.
